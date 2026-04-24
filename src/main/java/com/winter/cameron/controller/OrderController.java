@@ -9,6 +9,8 @@ import com.winter.cameron.dto.CreateOrderRequest;
 import com.winter.cameron.dto.OrderResponse;
 import com.winter.cameron.service.OrderService;
 
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/orders")
@@ -21,7 +23,7 @@ public class OrderController {
 
     @PostMapping
 
-    public OrderResponse createOrder(@RequestBody CreateOrderRequest request) {
+    public OrderResponse createOrder(@Valid @RequestBody CreateOrderRequest request) {
         return service.createOrder(request);
     }
 
