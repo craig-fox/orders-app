@@ -1,13 +1,13 @@
-package com.winter.cameron;
+package com.winter.ordersapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CameronApplication {
+public class OrdersApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CameronApplication.class, args);
+		SpringApplication.run(OrdersApplication.class, args);
 	}
 
 }

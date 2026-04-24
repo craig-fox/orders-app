@@ -1,4 +1,4 @@
-package com.winter.cameron.controller;
+package com.winter.ordersapp.controller;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.winter.cameron.exception.OrderNotFoundException;
+import com.winter.ordersapp.exception.OrderNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

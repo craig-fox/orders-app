@@ -1,10 +1,10 @@
-package com.winter.cameron;
+package com.winter.ordersapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CameronApplicationTests {
+class OrdersApplicationTests {
 
 	@Test
 	void contextLoads() {

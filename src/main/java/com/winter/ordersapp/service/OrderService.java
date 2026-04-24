@@ -1,17 +1,22 @@
-package com.winter.cameron.service;
+package com.winter.ordersapp.service;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.winter.cameron.domain.Order;
-import com.winter.cameron.domain.OrderStatus;
-import com.winter.cameron.dto.CreateOrderRequest;
-import com.winter.cameron.dto.OrderResponse;
-import com.winter.cameron.exception.OrderNotFoundException;
-import com.winter.cameron.repository.OrderRepository;
+import com.winter.ordersapp.domain.Order;
+import com.winter.ordersapp.domain.OrderStatus;
+import com.winter.ordersapp.dto.CreateOrderRequest;
+import com.winter.ordersapp.dto.OrderResponse;
+import com.winter.ordersapp.exception.OrderNotFoundException;
+import com.winter.ordersapp.repository.OrderRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Service
 public class OrderService {
     private final OrderRepository repository;
@@ -34,6 +39,9 @@ public class OrderService {
         );
 
         Order saved = repository.save(order);
+        log.info("order_created",
+            kv("orderId", order.getId()),
+            kv("customerId", order.getCustomerId()));
 
         return new OrderResponse(
                 saved.getId(),

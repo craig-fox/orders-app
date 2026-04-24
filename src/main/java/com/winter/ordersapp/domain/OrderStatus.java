@@ -1,4 +1,4 @@
-package com.winter.cameron.domain;
+package com.winter.ordersapp.domain;
 
 public enum OrderStatus {
     CREATED

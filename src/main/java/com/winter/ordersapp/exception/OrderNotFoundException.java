@@ -1,4 +1,4 @@
-package com.winter.cameron.exception;
+package com.winter.ordersapp.exception;
 
 import java.util.UUID;
 

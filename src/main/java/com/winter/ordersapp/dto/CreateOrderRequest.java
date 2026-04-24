@@ -1,4 +1,4 @@
-package com.winter.cameron.dto;
+package com.winter.ordersapp.dto;
 
 import java.math.BigDecimal;
 
