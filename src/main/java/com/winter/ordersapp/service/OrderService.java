@@ -57,12 +57,16 @@ public class OrderService {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
+        log.info("retrieved_order",
+            kv("orderId", order.getId()),
+            kv("customerId", order.getCustomerId()));
+
         return new OrderResponse(
-                order.getId(),
-                order.getCustomerId(),
-                order.getStatus().name(),
-                order.getTotalAmount(),
-                order.getCreatedAt()
+            order.getId(),
+            order.getCustomerId(),
+            order.getStatus().name(),
+            order.getTotalAmount(),
+            order.getCreatedAt()
         );
     }
 
