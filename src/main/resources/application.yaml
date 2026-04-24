@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: cameron
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver # Explicitly defined
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    # Added: prevents Flyway from running if you accidentally point it 
+    # at a production DB that already has data but no schema_version table
+    baseline-version: 0 
+
+  jpa:
+    hibernate:
+      # 'validate' is safe for production, but ensures Hibernate 
+      # doesn't try to change your Flyway-managed schema
+      ddl-auto: validate 
+    properties:
+      hibernate:
+        # PostgreSQL specific: Ensures camelCase in Java becomes snake_case in DB
+        # Without this, 'validate' often fails because Java 'userId' won't match DB 'user_id'
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        format_sql: true # Helpful for debugging logs
+    show-sql: false # Set to true only during active development
