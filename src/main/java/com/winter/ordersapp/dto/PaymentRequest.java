@@ -2,6 +2,12 @@ package com.winter.ordersapp.dto;
 
 import java.math.BigDecimal;
 
-public record PaymentRequest( String orderId, BigDecimal amount) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
-}
+public record PaymentRequest( 
+    @NotBlank(message = "orderId must not be blank")
+    String orderId,
+
+    @Positive(message = "amount must be greater than 0")
+    BigDecimal amount) {}
