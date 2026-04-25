@@ -14,9 +14,9 @@
     </parent>
 
     <groupId>com.winter</groupId>
-    <artifactId>cameron</artifactId>
+    <artifactId>orders-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>cameron</name>
+    <name>orders-app</name>
     <description>Order Service</description>
 
     <properties>

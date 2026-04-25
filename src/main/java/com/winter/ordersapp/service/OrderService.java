@@ -7,6 +7,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.winter.ordersapp.client.InventoryClient;
@@ -39,6 +40,7 @@ public class OrderService {
     }
 
     @Retryable(retryFor = PaymentException.class, maxAttempts = 3, backoff = @Backoff(delay = 500))
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
         // ... (Order creation and saving logic) ...
         Order order = new Order(
@@ -51,9 +53,18 @@ public class OrderService {
 
         // No try-catch here! Let the exception fly so @Retryable can see it.
         paymentClient.processPayment(order);
-        inventoryClient.reserve(order);
-        
-        order.setStatus(OrderStatus.CONFIRMED);
+
+        // 3. Catch specific business failures
+        try {
+            inventoryClient.reserve(order);
+            order.setStatus(OrderStatus.CONFIRMED);
+        } catch (RuntimeException e) {
+            // Log the failure with context
+            log.error("Inventory reservation failed for order {}", order.getId(), e);
+            // Update the state to the "Failed" state instead of crashing
+            order.setStatus(OrderStatus.INVENTORY_FAILED);
+        }
+
         repository.save(order); // Save the success
 
         return new OrderResponse(
