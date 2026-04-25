@@ -9,8 +9,12 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "orders")
 public class Order {
     @Id
@@ -44,35 +48,7 @@ public class Order {
 
     }
 
-    public UUID getId() {
-
-        return id;
-
-    }
-
-    public String getCustomerId() {
-
-        return customerId;
-
-    }
-
-    public OrderStatus getStatus() {
-
-        return status;
-
-    }
-
-    public BigDecimal getTotalAmount() {
-
-        return totalAmount;
-
-    }
-
-    public Instant getCreatedAt() {
-
-        return createdAt;
-
-    }
+   
 
     
 }

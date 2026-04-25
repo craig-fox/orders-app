@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.winter.ordersapp.dto.CreateOrderRequest;
+import com.winter.ordersapp.dto.OrderRequest;
 import com.winter.ordersapp.dto.OrderResponse;
 import com.winter.ordersapp.service.OrderService;
 
@@ -29,7 +29,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderResponse createOrder(@Valid @RequestBody CreateOrderRequest request) {
+    public OrderResponse createOrder(@Valid @RequestBody OrderRequest request) {
         return service.createOrder(request);
     }
 

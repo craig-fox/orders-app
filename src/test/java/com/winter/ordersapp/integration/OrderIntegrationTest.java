@@ -1,16 +1,24 @@
 package com.winter.ordersapp.integration;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.winter.ordersapp.client.InventoryClient;
+import com.winter.ordersapp.client.PaymentClient;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,9 +28,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 class OrderIntegrationTest {
 
+    @MockitoBean // <--- Add this
+    private PaymentClient paymentClient;
+
+    @MockitoBean // <--- Add this
+    private InventoryClient inventoryClient;
+
     @Container
-    static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:15");
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
 
     @DynamicPropertySource
     static void configure(DynamicPropertyRegistry registry) {
@@ -36,11 +49,13 @@ class OrderIntegrationTest {
 
     @Test
     void shouldCreateOrder() throws Exception {
+        Mockito.doNothing().when(paymentClient).processPayment(Mockito.any());
+        Mockito.doNothing().when(inventoryClient).reserve(Mockito.any());
         String request = """
-       {
+        {
            "customerId": "cust-123",
            "totalAmount": 49.99
-      }
+       }
         """;
 
         mockMvc.perform(post("/orders")

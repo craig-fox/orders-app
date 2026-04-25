@@ -1,5 +1,8 @@
 package com.winter.ordersapp.domain;
 
 public enum OrderStatus {
-    CREATED
+    PENDING,
+    PAYMENT_FAILED,
+    INVENTORY_FAILED,
+    CONFIRMED
 }
