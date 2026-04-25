@@ -47,19 +47,17 @@ public class ClientConfig {
                 .build();
     }
 
-    @Bean
-    public PaymentClient paymentClient(RestClient restClient) {
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory
-            .builderFor(RestClientAdapter.create(restClient))
-            .build();
-        return factory.createClient(PaymentClient.class);
-    }
 
-     @Bean
-    public InventoryClient inventoryClient(RestClient restClient) {
+    @Bean
+    public InventoryClient inventoryClient(RestClient.Builder builder, ServiceProperties props) {
+        RestClient restClient = builder
+        .baseUrl("http://localhost:8082") // Verify your inventory port!
+        .build();
+
         HttpServiceProxyFactory factory = HttpServiceProxyFactory
             .builderFor(RestClientAdapter.create(restClient))
             .build();
+
         return factory.createClient(InventoryClient.class);
     }
 }

@@ -36,6 +36,8 @@ server:
 services:
   payment:
     base-url: http://localhost:8081   
+  inventory:
+    base-url: http://localhost:8082  
     
   # Set to true only during active development
 
