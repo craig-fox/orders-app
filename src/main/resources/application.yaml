@@ -36,9 +36,25 @@ server:
 services:
   payment:
     base-url: http://localhost:8081   
+
   inventory:
     base-url: http://localhost:8082  
     
   # Set to true only during active development
+resilience4j:
+  retry:
+    instances:
+      paymentRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
+        retryExceptions:
+          - com.winter.ordersapp.exception.PaymentException
+          - org.springframework.web.client.ResourceAccessException
 
+  circuitbreaker:
+    instances:
+      paymentCircuit:
+
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s        
   

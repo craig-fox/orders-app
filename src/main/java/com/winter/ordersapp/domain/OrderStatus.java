@@ -4,5 +4,6 @@ public enum OrderStatus {
     PENDING,
     PAYMENT_FAILED,
     INVENTORY_FAILED,
-    CONFIRMED
+    CONFIRMED,
+    PROCESSING_ERROR
 }

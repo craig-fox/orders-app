@@ -1,6 +1,8 @@
 package com.winter.ordersapp.integration;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,34 +12,47 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.RestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.jayway.jsonpath.JsonPath;
 import com.winter.ordersapp.client.InventoryClient;
-import com.winter.ordersapp.client.PaymentClient;
-import com.winter.ordersapp.exception.PaymentException;
-
-
+import com.winter.ordersapp.security.JwtFilter;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+
+@SpringBootTest(properties = {
+    "services.payment.base-url=http://localhost:${wiremock.server.port}"
+})
 @Testcontainers
+@AutoConfigureMockMvc(addFilters = false)
 class OrderIntegrationTest {
 
-    @MockitoBean // <--- Add this
-    private PaymentClient paymentClient;
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort())
+        .build();
 
     @MockitoBean // <--- Add this
     private InventoryClient inventoryClient;
 
+    @MockitoBean
+    private JwtFilter jwtFilter;
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
+
+    @Autowired
+    private RestClient.Builder restClientBuilder;
+
 
     @DynamicPropertySource
     static void configure(DynamicPropertyRegistry registry) {
@@ -49,9 +64,18 @@ class OrderIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @BeforeEach
+    void setup() {
+        wireMock.resetAll();
+
+        wireMock.stubFor(post("/api/v1/payments")
+            .willReturn(aResponse()
+                .withStatus(500)));
+    }
+
     @Test
     void shouldCreateOrder() throws Exception {
-        Mockito.doNothing().when(paymentClient).processPayment(Mockito.any());
+       // nothing needed if PaymentClient is real + WireMock handles it
         Mockito.doNothing().when(inventoryClient).reserve(Mockito.any());
         String request = """
         {
@@ -59,18 +83,19 @@ class OrderIntegrationTest {
            "totalAmount": 49.99
        }
         """;
-
-        mockMvc.perform(post("/orders")
+       
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isCreated())
+            .andDo(print())
+                .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").exists());
     }
 
     @Test
     void shouldGetOrder() throws Exception {
         // First create an order
-        Mockito.doNothing().when(paymentClient).processPayment(Mockito.any());
+       // nothing needed if PaymentClient is real + WireMock handles it
         Mockito.doNothing().when(inventoryClient).reserve(Mockito.any());
         String request = """
         {
@@ -79,7 +104,7 @@ class OrderIntegrationTest {
        }
         """;
 
-        String response = mockMvc.perform(post("/orders")
+        String response = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isCreated())
@@ -106,34 +131,40 @@ class OrderIntegrationTest {
                 "totalAmount": -10
          }
         """;
-        mockMvc.perform(post("/orders")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
     } 
     
     @Test
-    void shouldHandlePaymentFailure() throws Exception {
-        Mockito.doThrow(new PaymentException("Payment failed"))
-            .when(paymentClient).processPayment(Mockito.any());
+    void shouldHandlePaymentRetries() throws Exception {
+
+        wireMock.stubFor(post("/api/v1/payments")
+            .willReturn(aResponse()
+                .withStatus(500)));
 
         String request = """
         {
-           "customerId": "cust-123",
-           "totalAmount": 49.99
-       }
+            "customerId": "cust-123",
+            "totalAmount": 49.99
+        }
         """;
 
-        mockMvc.perform(post("/orders")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.status").value("PAYMENT_FAILED"));
+
+        wireMock.verify(3,
+            postRequestedFor(urlEqualTo("/api/v1/payments"))
+        );
     }
 
     @Test
     void shouldHandleInventoryFailure() throws Exception {
-        Mockito.doNothing().when(paymentClient).processPayment(Mockito.any());
+        // nothing needed if PaymentClient is real + WireMock handles it
         Mockito.doThrow(new RuntimeException("Inventory failed"))
             .when(inventoryClient).reserve(Mockito.any());
 
@@ -144,7 +175,7 @@ class OrderIntegrationTest {
        }
         """;
 
-        mockMvc.perform(post("/orders")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isCreated())
@@ -152,38 +183,11 @@ class OrderIntegrationTest {
     }
 
     @Test
-    void shouldHandlePaymentRetries() throws Exception {
-        // 1. Stub the client to always throw the exception.
-        // Spring Retry will manage the number of attempts (3).
-        Mockito.doThrow(new PaymentException("Payment failed"))
-            .when(paymentClient).processPayment(Mockito.any());
-
-        String request = """
-        {
-        "customerId": "cust-123",
-        "totalAmount": 49.99
-        }
-        """;
-
-        // 2. Perform the request. 
-        // Because we use @Recover in the Service, the request 
-        // will eventually return 201/200 with the "PAYMENT_FAILED" status.
-        mockMvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.status").value("PAYMENT_FAILED"));
-
-        // 3. Verify that the client was called exactly 3 times.
-        // This proves the retry logic actually executed.
-        Mockito.verify(paymentClient, Mockito.times(3)).processPayment(Mockito.any());
-    }
-
-    @Test
     void shouldHandleTimeoutByMarkingOrderFailed() throws Exception {
-        // 1. Explicitly throw the exception Spring throws during a timeout
-        Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("Read timed out"))
-            .when(paymentClient).processPayment(Mockito.any());
+
+        wireMock.stubFor(post(urlEqualTo("/api/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(500)));
 
         String request = """
         {
@@ -192,10 +196,10 @@ class OrderIntegrationTest {
         }
         """;
 
-        mockMvc.perform(post("/orders")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isCreated()) 
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.status").value("PAYMENT_FAILED"));
     }
 

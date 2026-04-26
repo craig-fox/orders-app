@@ -1,11 +1,7 @@
 package com.winter.ordersapp.client;
 
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
-
 import com.winter.ordersapp.config.ServiceProperties;
 import com.winter.ordersapp.domain.Order;
 import com.winter.ordersapp.dto.PaymentRequest;
@@ -26,12 +22,6 @@ public class RestPaymentClient implements PaymentClient {
         this.baseUrl = serviceProperties.getPayment().getBaseUrl();
     }
 
-
-    @Retryable( 
-        retryFor  = { RestClientException.class },
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 500)
-   )
     @Override
     public void processPayment(Order order) {
 
@@ -54,8 +44,8 @@ public class RestPaymentClient implements PaymentClient {
                 throw new PaymentException("Payment failed");
             }
 
-        } catch (RestClientException e) {
-            throw new PaymentException("Payment service call failed", e);
+        } catch (Exception _) {
+            throw new PaymentException("Payment service call failed");
         }
 
     }
