@@ -16,7 +16,7 @@
     <groupId>com.winter</groupId>
     <artifactId>orders-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>orders-app</name>
+    <name>order-service</name>
     <description>Order Service</description>
 
     <properties>
@@ -150,9 +150,9 @@
 
         <dependency>
             <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.5.4</version> <!-- or latest -->
             <scope>test</scope>
-            <version>3.5.4</version>
         </dependency>
 
     </dependencies>

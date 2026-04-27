@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class ServiceProperties {
     private final Payment payment = new Payment();
     private final Inventory inventory = new Inventory(); // 1. Add the field
+    private final Auth auth = new Auth(); // 1. Add the field
 
     public Payment getPayment() {
         return payment;
@@ -15,6 +16,10 @@ public class ServiceProperties {
 
     public Inventory getInventory() { // 2. Add the getter
         return inventory;
+    }
+
+    public Auth getAuth() { // 2. Add the getter
+        return auth;
     }
 
     public static class Payment {
@@ -26,6 +31,13 @@ public class ServiceProperties {
 
     // 3. Add the nested Inventory class
     public static class Inventory {
+        private String baseUrl;
+
+        public String getBaseUrl() { return baseUrl; }
+        public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
+    }
+
+    public static class Auth {
         private String baseUrl;
 
         public String getBaseUrl() { return baseUrl; }

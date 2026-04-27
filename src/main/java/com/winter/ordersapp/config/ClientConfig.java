@@ -15,7 +15,6 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import com.winter.ordersapp.client.InventoryClient;
-import com.winter.ordersapp.client.PaymentClient;
 
 @Configuration
 public class ClientConfig {
