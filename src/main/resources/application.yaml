@@ -60,4 +60,13 @@ resilience4j:
 
         failureRateThreshold: 50
         waitDurationInOpenState: 10s        
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always        
   
